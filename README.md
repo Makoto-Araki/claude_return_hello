@@ -59,7 +59,7 @@ GitHub Actions で以下の3つのワークフローを実行します（`.githu
 | --- | --- | --- |
 | `pr-test.yml` | PR作成・更新時（`main`向け） | pytest を実行 |
 | `main-ci.yml` | `main` へのpush（マージ）時 | pytest を実行 → Dockerイメージをビルドし Trivy で脆弱性スキャン（CRITICALのみ失敗、HIGH以下はレポートのみ） |
-| `release.yml` | `v*` 形式のタグをpushした時 | pytest を実行 → Dockerイメージをビルド → Docker Hub（`makotoaraki/claude-return-hello`）にタグ名と `latest` の2つのタグでpush |
+| `release.yml` | `v*` 形式のタグをpushした時 | pytest を実行 → Dockerイメージをビルド → Docker Hub（`makotoaraki346/claude-return-hello`）にタグ名と `latest` の2つのタグでpush |
 
 リリースする場合は、mainマージ後に以下のようにタグをpushします。
 

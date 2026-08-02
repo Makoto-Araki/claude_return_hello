@@ -36,8 +36,8 @@ jobs:
       - name: Build image
         run: |
           docker build \
-            -t makotoaraki/claude-return-hello:${{ github.ref_name }} \
-            -t makotoaraki/claude-return-hello:latest \
+            -t makotoaraki346/claude-return-hello:${{ github.ref_name }} \
+            -t makotoaraki346/claude-return-hello:latest \
             .
 
       - name: Log in to Docker Hub
@@ -45,5 +45,5 @@ jobs:
 
       - name: Push image
         run: |
-          docker push makotoaraki/claude-return-hello:${{ github.ref_name }}
-          docker push makotoaraki/claude-return-hello:latest
+          docker push makotoaraki346/claude-return-hello:${{ github.ref_name }}
+          docker push makotoaraki346/claude-return-hello:latest
