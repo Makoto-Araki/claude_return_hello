@@ -33,7 +33,7 @@ GitHub Actions で以下の3つのワークフローを実行する（`.github/w
 
 - **`pr-test.yml`**（PR作成・更新時、`pull_request` targeting `main`）: pytest を実行する。
 - **`main-ci.yml`**（mainへのマージ時、`push` to `main`）: pytest を実行した後、ビルドしたDockerイメージに対して Trivy で脆弱性スキャンを行う。CRITICALのみジョブを失敗させ、HIGH以下はレポートのみ（失敗させない）。
-- **`release.yml`**（タグpush時、`push: tags: ['v*']`。GitHubの `release` イベントではなくタグpushをトリガーに使う）: pytest を実行した後、Dockerイメージをビルドし、Docker Hub（`makotoaraki/claude-return-hello`）に push する。イメージタグは git タグ名をそのまま使用（例: `v1.0.0`。`v` は取り除かない）と `latest` の2つ。
+- **`release.yml`**（タグpush時、`push: tags: ['v*']`。GitHubの `release` イベントではなくタグpushをトリガーに使う）: pytest を実行した後、Dockerイメージをビルドし、Docker Hub（`makotoaraki346/claude-return-hello`）に push する。イメージタグは git タグ名をそのまま使用（例: `v1.0.0`。`v` は取り除かない）と `latest` の2つ。
 
 - 3ワークフローで共通するテスト実行手順（checkout → setup-python 3.12 → `pip install -r requirements-dev.txt` → `pytest -q`）は、reusable workflow化せずそのまま重複させている。ワークフローが3つ・テストファイルが1つのみという規模では、reusable workflow による抽象化は複雑さに見合わないため。
 - Docker Hub への認証情報は GitHub Actions の Secrets（`DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN`）として登録する。`DOCKERHUB_TOKEN` はDocker Hubのアクセストークン（アカウントパスワードではない）を使う。
