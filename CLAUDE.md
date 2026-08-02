@@ -16,6 +16,7 @@
 - **Dockerfile はルート直下、ソースは `src/` に分離**: 将来ソースが増えても `src/` 配下に追加していけばよく、Dockerfileの探索場所は慣習通りに保つ。
 - **テストは `subprocess` で `hello.py` をスクリプトとして実行し、標準出力を検証**: `main()` への切り出しなどのリファクタリングは行わない。`hello.py` は「2行だけ」であることが設計意図であり、Dockerfile の `CMD ["python", "hello.py"]` や CronJob が実際に叩く経路（スクリプト実行）とテスト内容を一致させるため。
 - **開発用依存は `requirements-dev.txt` に pytest のみ**: 既存の依存管理ファイルが元々ない状態に合わせ、`pyproject.toml` のようなパッケージング前提の重い構成は導入しない。
+- **ベースイメージは `python:3.12-alpine`**: 当初 `python:3.12-slim`（Debian）を使用していたが、`main-ci.yml` の Trivy スキャンで `perl-base` パッケージの CRITICAL 脆弱性が検出されたため切り替えた。Alpine系には perl-base が含まれず、イメージサイズも小さい。`hello.py` は stdlib のみで動作するため互換性の問題はない。
 
 ## 開発フロー
 このリポジトリでの変更は、Claude Code を使った以下の手順を標準とする（検証中の手順）。
