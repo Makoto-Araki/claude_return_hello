@@ -13,6 +13,8 @@
 ├── requirements-dev.txt    # テスト実行用の開発依存（pytest）
 ├── k8s/
 │   └── cronjob.yaml         # Kubernetes CronJobマニフェスト
+├── .github/
+│   └── workflows/           # CI/CD ワークフロー
 └── Dockerfile
 ```
 
@@ -49,6 +51,25 @@ pip install -r requirements-dev.txt
 pytest -q
 ```
 
+## CI/CD
+
+GitHub Actions で以下の3つのワークフローを実行します（`.github/workflows/`）。
+
+| ワークフロー | トリガー | 内容 |
+| --- | --- | --- |
+| `pr-test.yml` | PR作成・更新時（`main`向け） | pytest を実行 |
+| `main-ci.yml` | `main` へのpush（マージ）時 | pytest を実行 → Dockerイメージをビルドし Trivy で脆弱性スキャン（CRITICALのみ失敗、HIGH以下はレポートのみ） |
+| `release.yml` | `v*` 形式のタグをpushした時 | pytest を実行 → Dockerイメージをビルド → Docker Hub（`makotoaraki/claude-return-hello`）にタグ名と `latest` の2つのタグでpush |
+
+リリースする場合は、mainマージ後に以下のようにタグをpushします。
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+事前に、リポジトリのSecretsに `DOCKERHUB_USERNAME` と `DOCKERHUB_TOKEN`（Docker Hubのアクセストークン）を登録しておく必要があります。
+
 ## 開発の進め方
 
-このリポジトリでの変更は、GitHub Issue を起票してからブランチを切り、実装・動作確認の後に PR を作成してレビュー・マージする流れを基本としています（CI/CD やテンプレート類は、リポジトリの規模に見合わないため導入していません）。
+このリポジトリでの変更は、GitHub Issue を起票してからブランチを切り、実装・動作確認の後に PR を作成してレビュー・マージする流れを基本としています（Issue/PRテンプレート類は、リポジトリの規模に見合わないため導入していません）。CI/CDについては上記の「CI/CD」を参照してください。
