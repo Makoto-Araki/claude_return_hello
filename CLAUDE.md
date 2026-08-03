@@ -9,6 +9,7 @@
 - `k8s/cronjob.yaml` — CronJob マニフェスト
 - `Dockerfile` — ルート直下に配置（`docker build .` やCI/CDが既定でルートのDockerfileを探すため）
 - `.github/workflows/` — CI/CD ワークフロー（PRテスト・mainマージ時のテスト+脆弱性スキャン・タグpush時のDocker Hubリリース）
+- `.devcontainer/devcontainer.json` — Claude Code での開発用devcontainer定義
 
 ## 設計判断
 - **`imagePullPolicy: Never`**: Docker Desktop の Kubernetes はホストの Docker デーモンをそのまま共有するため、イメージレジストリへの push は不要。ローカルで `docker build` したイメージをそのまま参照できる。
