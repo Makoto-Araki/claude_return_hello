@@ -1,0 +1,13 @@
+.git/
+.github/
+.devcontainer/
+.venv/
+venv/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+tests/
+k8s/
+README.md
+CLAUDE.md
