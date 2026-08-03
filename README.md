@@ -15,6 +15,8 @@
 │   └── cronjob.yaml         # Kubernetes CronJobマニフェスト
 ├── .github/
 │   └── workflows/           # CI/CD ワークフロー
+├── .devcontainer/
+│   └── devcontainer.json    # 開発用devcontainer定義
 └── Dockerfile
 ```
 
@@ -61,14 +63,18 @@ GitHub Actions で以下の3つのワークフローを実行します（`.githu
 | `main-ci.yml` | `main` へのpush（マージ）時 | pytest を実行 → Dockerイメージをビルドし Trivy で脆弱性スキャン（CRITICALのみ失敗、HIGH以下はレポートのみ） |
 | `release.yml` | `v*` 形式のタグをpushした時 | pytest を実行 → Dockerイメージをビルド → Docker Hub（`makotoaraki346/claude-return-hello`）にタグ名と `latest` の2つのタグでpush |
 
-リリースする場合は、mainマージ後に以下のようにタグをpushします。
+リリースする場合は、mainマージ後に以下のように次のバージョンのタグをpushします（例: 現時点の最新リリースは `v1.0.1`）。
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.0.2
+git push origin v1.0.2
 ```
 
 事前に、リポジトリのSecretsに `DOCKERHUB_USERNAME` と `DOCKERHUB_TOKEN`（Docker Hubのアクセストークン）を登録しておく必要があります。
+
+## ライセンス
+
+[MIT License](./LICENSE)
 
 ## 開発の進め方
 
