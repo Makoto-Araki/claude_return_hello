@@ -40,6 +40,14 @@ jobs:
             -t makotoaraki346/claude-return-hello:latest \
             .
 
+      - name: Trivy scan (fail on CRITICAL)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: makotoaraki346/claude-return-hello:${{ github.ref_name }}
+          format: table
+          severity: CRITICAL
+          exit-code: '1'
+
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 

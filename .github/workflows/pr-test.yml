@@ -27,3 +27,6 @@ jobs:
 
       - name: Run tests
         run: pytest -q
+
+      - name: Build image
+        run: docker build -t claude-return-hello:pr-check .
