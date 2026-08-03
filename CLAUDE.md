@@ -6,7 +6,7 @@
 - `src/hello.py` — アプリ本体
 - `tests/test_hello.py` — `hello.py` のテスト
 - `requirements-dev.txt` — テスト実行用の開発依存（pytest, ruff）
-- `k8s/cronjob.yaml` — CronJob マニフェスト
+- `k8s/cronjob.yaml` — Namespace（`claude-sample`）+ CronJob マニフェスト
 - `Dockerfile` — ルート直下に配置（`docker build .` やCI/CDが既定でルートのDockerfileを探すため）
 - `.github/workflows/` — CI/CD ワークフロー（PRテスト・mainマージ時のテスト+脆弱性スキャン・タグpush時のDocker Hubリリース）
 - `.devcontainer/devcontainer.json` — Claude Code での開発用devcontainer定義
@@ -14,6 +14,13 @@
 ## 設計判断
 - **`imagePullPolicy: Never`**: Docker Desktop の Kubernetes はホストの Docker デーモンをそのまま共有するため、イメージレジストリへの push は不要。ローカルで `docker build` したイメージをそのまま参照できる。
 - **スケジュール `0 * * * *`**: 1時間ごと（毎時0分）に実行する要件のため。
+- **namespace `claude-sample` を明示し、`k8s/cronjob.yaml` に Namespace リソースも同梱**: default
+  namespaceへの雑多なリソース混在を避け、`kubectl apply -f k8s/cronjob.yaml` 一回でnamespaceごと
+  作成できるようにする。
+- **CronJobに `concurrencyPolicy: Forbid`・`successfulJobsHistoryLimit: 3`・
+  `failedJobsHistoryLimit: 1`・`resources`（requests/limits）・`labels: app: hello` を明示**:
+  デフォルト任せにせず意図を明文化する。`print`だけのジョブでリソース超過の実害はほぼないが、
+  運用上の設定として明示しておく。
 - **Dockerfile はルート直下、ソースは `src/` に分離**: 将来ソースが増えても `src/` 配下に追加していけばよく、Dockerfileの探索場所は慣習通りに保つ。
 - **テストは `subprocess` で `hello.py` をスクリプトとして実行し、標準出力を検証**: `main()` への切り出しなどのリファクタリングは行わない。`hello.py` は「2行だけ」であることが設計意図であり、Dockerfile の `CMD ["python", "hello.py"]` や CronJob が実際に叩く経路（スクリプト実行）とテスト内容を一致させるため。
 - **開発用依存は `requirements-dev.txt` に pytest と ruff のみ**: 既存の依存管理ファイルが元々ない状態に合わせ、`pyproject.toml` のようなパッケージング前提の重い構成は導入しない。ruffの設定ファイルもデフォルトルールで十分なため追加しない。
@@ -51,12 +58,12 @@ GitHub Actions で以下の3つのワークフローを実行する（`.github/w
 # ビルド
 docker build -t claude-return-hello:latest .
 
-# 適用
+# 適用（Namespace claude-sample も同時に作成される）
 kubectl apply -f k8s/cronjob.yaml
 
 # 手動トリガーで即時確認
-kubectl create job --from=cronjob/hello-cronjob hello-test
-kubectl logs job/hello-test
+kubectl create job --from=cronjob/hello-cronjob hello-test -n claude-sample
+kubectl logs job/hello-test -n claude-sample
 
 # テスト
 python3 -m venv .venv && source .venv/bin/activate

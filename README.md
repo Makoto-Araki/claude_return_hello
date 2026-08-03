@@ -12,7 +12,7 @@
 │   └── test_hello.py       # hello.py のテスト
 ├── requirements-dev.txt    # テスト実行用の開発依存（pytest）
 ├── k8s/
-│   └── cronjob.yaml         # Kubernetes CronJobマニフェスト
+│   └── cronjob.yaml         # Namespace + CronJob マニフェスト（namespace: claude-sample）
 ├── .github/
 │   └── workflows/           # CI/CD ワークフロー
 ├── .devcontainer/
@@ -30,9 +30,11 @@ docker build -t claude-return-hello:latest .
 
 ## デプロイ
 
+`k8s/cronjob.yaml` には `claude-sample` Namespaceの定義も含まれているため、`kubectl apply` 一度で namespace ごと作成されます。
+
 ```bash
 kubectl apply -f k8s/cronjob.yaml
-kubectl get cronjob
+kubectl get cronjob -n claude-sample
 ```
 
 ## 動作確認
@@ -40,8 +42,8 @@ kubectl get cronjob
 スケジュール（毎時0分）を待たずに手動実行する場合:
 
 ```bash
-kubectl create job --from=cronjob/hello-cronjob hello-test
-kubectl logs job/hello-test
+kubectl create job --from=cronjob/hello-cronjob hello-test -n claude-sample
+kubectl logs job/hello-test -n claude-sample
 ```
 
 ## テスト
@@ -63,11 +65,11 @@ GitHub Actions で以下の3つのワークフローを実行します（`.githu
 | `main-ci.yml` | `main` へのpush（マージ）時 | pytest を実行 → Dockerイメージをビルドし Trivy で脆弱性スキャン（CRITICALのみ失敗、HIGH以下はレポートのみ） |
 | `release.yml` | `v*` 形式のタグをpushした時 | pytest を実行 → Dockerイメージをビルド → Docker Hub（`makotoaraki346/claude-return-hello`）にタグ名と `latest` の2つのタグでpush |
 
-リリースする場合は、mainマージ後に以下のように次のバージョンのタグをpushします（例: 現時点の最新リリースは `v1.0.1`）。
+リリースする場合は、mainマージ後に以下のように次のバージョンのタグをpushします（例: 現時点の最新リリースは `v1.0.2`）。
 
 ```bash
-git tag v1.0.2
-git push origin v1.0.2
+git tag v1.0.3
+git push origin v1.0.3
 ```
 
 事前に、リポジトリのSecretsに `DOCKERHUB_USERNAME` と `DOCKERHUB_TOKEN`（Docker Hubのアクセストークン）を登録しておく必要があります。
