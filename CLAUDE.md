@@ -28,16 +28,23 @@ Issue起票 → ブランチ作成 → 実装 → ローカルで動作確認 �
 
 - GitHub Actions による CI/CD を導入している（詳細は下記「CI/CD」を参照）。Issue/PR テンプレートは、個人の検証用リポジトリの規模に見合わないため引き続き導入しない。
 - push・PR作成・マージなど、リモートやmainに影響する操作は、実行前にユーザーの確認を取ってから行う。
+- mainブランチには branch protection を設定済み（`pr-test.yml` の `test` ステータスチェックが
+  必須、`enforce_admins` も有効）。レビュー承認はソロ開発のため必須にしていない。CIをpassしない
+  変更はマージできない。
 
 ## CI/CD
 GitHub Actions で以下の3つのワークフローを実行する（`.github/workflows/`）。
 
-- **`pr-test.yml`**（PR作成・更新時、`pull_request` targeting `main`）: ruff によるlint、続けて pytest を実行する。
+- **`pr-test.yml`**（PR作成・更新時、`pull_request` targeting `main`）: ruff によるlint → pytest →
+  Dockerイメージのビルド検証（push はしない）を行う。mainブランチの必須ステータスチェック。
 - **`main-ci.yml`**（mainへのマージ時、`push` to `main`）: pytest を実行した後、ビルドしたDockerイメージに対して Trivy で脆弱性スキャンを行う。CRITICALのみジョブを失敗させ、HIGH以下はレポートのみ（失敗させない）。
-- **`release.yml`**（タグpush時、`push: tags: ['v*']`。GitHubの `release` イベントではなくタグpushをトリガーに使う）: pytest を実行した後、Dockerイメージをビルドし、Docker Hub（`makotoaraki346/claude-return-hello`）に push する。イメージタグは git タグ名をそのまま使用（例: `v1.0.0`。`v` は取り除かない）と `latest` の2つ。
+- **`release.yml`**（タグpush時、`push: tags: ['v*']`。GitHubの `release` イベントではなくタグpushをトリガーに使う）: pytest を実行 → Dockerイメージをビルド → Trivyスキャン（CRITICALのみ失敗）→
+  Docker Hub（`makotoaraki346/claude-return-hello`）に push する。イメージタグは git タグ名をそのまま使用（例: `v1.0.0`。`v` は取り除かない）と `latest` の2つ。
 
 - 3ワークフローで共通するテスト実行手順（checkout → setup-python 3.12 → `pip install -r requirements-dev.txt` → `pytest -q`）は、reusable workflow化せずそのまま重複させている。ワークフローが3つ・テストファイルが1つのみという規模では、reusable workflow による抽象化は複雑さに見合わないため。
 - Docker Hub への認証情報は GitHub Actions の Secrets（`DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN`）として登録する。`DOCKERHUB_TOKEN` はDocker Hubのアクセストークン（アカウントパスワードではない）を使う。
+- `.github/dependabot.yml` で `github-actions` と `docker`（Dockerfileのベースイメージ）の更新を
+  weekly で確認する。perl-baseのCRITICAL CVEのように「後から気づく」事態を減らすため。
 
 ## よく使うコマンド
 ```bash
