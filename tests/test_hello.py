@@ -14,3 +14,4 @@ def test_hello_prints_hello_to_stdout():
     )
     assert result.stdout == "Hello\n"
     assert result.stderr == ""
+    assert result.returncode == 0
