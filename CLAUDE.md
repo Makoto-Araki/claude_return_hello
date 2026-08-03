@@ -24,7 +24,15 @@
 - **Dockerfile はルート直下、ソースは `src/` に分離**: 将来ソースが増えても `src/` 配下に追加していけばよく、Dockerfileの探索場所は慣習通りに保つ。
 - **テストは `subprocess` で `hello.py` をスクリプトとして実行し、標準出力を検証**: `main()` への切り出しなどのリファクタリングは行わない。`hello.py` は「2行だけ」であることが設計意図であり、Dockerfile の `CMD ["python", "hello.py"]` や CronJob が実際に叩く経路（スクリプト実行）とテスト内容を一致させるため。
 - **開発用依存は `requirements-dev.txt` に pytest と ruff のみ**: 既存の依存管理ファイルが元々ない状態に合わせ、`pyproject.toml` のようなパッケージング前提の重い構成は導入しない。ruffの設定ファイルもデフォルトルールで十分なため追加しない。
-- **ベースイメージは `python:3.12-alpine`**: 当初 `python:3.12-slim`（Debian）を使用していたが、`main-ci.yml` の Trivy スキャンで `perl-base` パッケージの CRITICAL 脆弱性が検出されたため切り替えた。Alpine系には perl-base が含まれず、イメージサイズも小さい。`hello.py` は stdlib のみで動作するため互換性の問題はない。
+- **ベースイメージは `python:3.14-alpine`**: 当初 `python:3.12-slim`（Debian）を使用していたが、`main-ci.yml` の Trivy スキャンで `perl-base` パッケージの CRITICAL 脆弱性が検出されたため `python:3.12-alpine` に切り替えた（Alpine系には perl-base が含まれず、イメージサイズも小さい）。その後 Dependabot のPRでマイナー/メジャーの区別なくタグ追従する `3.14-alpine` に更新された。`hello.py` は stdlib のみで動作するため互換性の問題はない。
+- **ベースイメージはダイジェスト固定せずタグ追従**: 固定するとビルド再現性は上がるが、CVE修正の
+  自動追従ができなくなる（perl-baseの一件の再発リスク）。`dependabot.yml` がベースイメージの
+  更新を検知してPRを作成し、`main-ci.yml`/`pr-test.yml`のTrivyスキャンで安全性を確認できる体制
+  になったため、タグ追従を継続する方針とする。
+- **コンテナは非rootユーザー（`app`）で実行**: `RUN addgroup -S app && adduser -S -G app app` で
+  作成し、`USER app` で切り替える。`hello.py` の読み取り・実行に書き込み権限は不要なため
+  `chown` 等は行わない。`pr-test.yml` に `docker run ... id -u` で非rootであることを検証する
+  ステップを追加し、将来の回帰を防ぐ。
 
 ## 開発フロー
 このリポジトリでの変更は、Claude Code を使った以下の手順を標準とする（検証中の手順）。
@@ -43,7 +51,8 @@ Issue起票 → ブランチ作成 → 実装 → ローカルで動作確認 �
 GitHub Actions で以下の3つのワークフローを実行する（`.github/workflows/`）。
 
 - **`pr-test.yml`**（PR作成・更新時、`pull_request` targeting `main`）: ruff によるlint → pytest →
-  Dockerイメージのビルド検証（push はしない）を行う。mainブランチの必須ステータスチェック。
+  Dockerイメージのビルド検証 → 非rootユーザーで実行されることの検証（push はしない）を行う。
+  mainブランチの必須ステータスチェック。
 - **`main-ci.yml`**（mainへのマージ時、`push` to `main`）: pytest を実行した後、ビルドしたDockerイメージに対して Trivy で脆弱性スキャンを行う。CRITICALのみジョブを失敗させ、HIGH以下はレポートのみ（失敗させない）。
 - **`release.yml`**（タグpush時、`push: tags: ['v*']`。GitHubの `release` イベントではなくタグpushをトリガーに使う）: pytest を実行 → Dockerイメージをビルド → Trivyスキャン（CRITICALのみ失敗）→
   Docker Hub（`makotoaraki346/claude-return-hello`）に push する。イメージタグは git タグ名をそのまま使用（例: `v1.0.0`。`v` は取り除かない）と `latest` の2つ。
