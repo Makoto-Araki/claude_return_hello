@@ -30,3 +30,9 @@ jobs:
 
       - name: Build image
         run: docker build -t claude-return-hello:pr-check .
+
+      - name: Verify container runs as non-root
+        run: |
+          uid=$(docker run --rm claude-return-hello:pr-check id -u)
+          echo "Container UID: $uid"
+          test "$uid" != "0"
