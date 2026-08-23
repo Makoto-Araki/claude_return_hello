@@ -8,7 +8,16 @@ client = TestClient(app)
 
 
 def test_get_hello1_returns_200_and_message() -> None:
-    """GET /hello1 が200と {"message": "Hello1"} を返すことを確認する（REQ-001）。"""
+    """
+    Summary:
+        GET /hello1 が200と {"message": "Hello1"} を返すことを確認する（REQ-001）。
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     response = client.get("/hello1")
 
     assert response.status_code == 200
@@ -16,14 +25,32 @@ def test_get_hello1_returns_200_and_message() -> None:
 
 
 def test_get_undefined_path_returns_404() -> None:
-    """未定義パスへのGETリクエストが404を返すことを確認する（REQ-002）。"""
+    """
+    Summary:
+        未定義パスへのGETリクエストが404を返すことを確認する（REQ-002）。
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     response = client.get("/undefined")
 
     assert response.status_code == 404
 
 
 def test_post_hello1_returns_405() -> None:
-    """/hello1 へのPOSTリクエストが405を返すことを確認する（REQ-003）。"""
+    """
+    Summary:
+        /hello1 へのPOSTリクエストが405を返すことを確認する（REQ-003）。
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     response = client.post("/hello1")
 
     assert response.status_code == 405
