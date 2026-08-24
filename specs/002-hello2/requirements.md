@@ -23,12 +23,12 @@ CLAUDE.mdの規約に基づき、hello1で確立した実装パターンを踏�
 - 既存の /hello1 エンドポイントの挙動に影響を与えないこと
 
 ## 受け入れ基準
-- [ ] `curl http://localhost:8000/hello2` が200と `{"message":"Hello2"}` を返す
-- [ ] `curl -X POST http://localhost:8000/hello2` が405を返す
-- [ ] `curl http://localhost:8000/hello1` が引き続き200を返す（既存機能への
+- [x] `curl http://localhost:8000/hello2` が200と `{"message":"Hello2"}` を返す
+- [x] `curl -X POST http://localhost:8000/hello2` が405を返す
+- [x] `curl http://localhost:8000/hello1` が引き続き200を返す（既存機能への
   影響がないことの確認）
-- [ ] pytestによる自動テストが存在し、上記のケースをカバーする
-- [ ] `uv run ruff check .` がエラーなしで通過する
+- [x] pytestによる自動テストが存在し、上記のケースをカバーする
+- [x] `uv run ruff check .` がエラーなしで通過する
 
 ## 今後の拡張との関係
 本要件も hello1 と同様、CLAUDE.mdの規約（1エンドポイント=1ファイル、
