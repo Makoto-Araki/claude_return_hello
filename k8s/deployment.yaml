@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-return-hello
+  namespace: claude-return-hello
+  labels:
+    app: claude-return-hello
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: claude-return-hello
+  template:
+    metadata:
+      labels:
+        app: claude-return-hello
+    spec:
+      containers:
+        - name: app
+          image: claude-return-hello:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /hello1
+              port: 8000
+            initialDelaySeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: claude-return-hello
+  namespace: claude-return-hello
+spec:
+  selector:
+    app: claude-return-hello
+  ports:
+    - port: 8000
+      targetPort: 8000

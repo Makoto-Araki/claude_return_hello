@@ -1,0 +1,11 @@
+.git
+.venv
+.pytest_cache
+.ruff_cache
+.devcontainer
+.claude
+specs
+tests
+k8s
+README.md
+main.py
